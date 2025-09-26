@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_URL_LENGTH 256
+
+typedef struct {
+    char **urls;
+    int size;
+    int capacity;
+} History;
+
+void initHistory(History *history) {
+    history->capacity = 10;
+    history->size = 0;
+    history->urls = malloc(sizeof(char*) * history->capacity);
+}
+
+void addURL(History *history, const char *url) {
+    if (history->size == history->capacity) {
+        history->capacity *= 2;
+        history->urls = realloc(history->urls, sizeof(char*) * history->capacity);
+    }
+    history->urls[history->size] = malloc(strlen(url) + 1);
+    strcpy(history->urls[history->size], url);
+    history->size++;
+}
+
+void printHistory(const History *history) {
+    if (history->size == 0) {
+        printf("No history.\n");
+        return;
+    }
+    printf("Browser History:\n");
+    for (int i = 0; i < history->size; i++) {
+        printf("%d. %s\n", i + 1, history->urls[i]);
+    }
+}
+
+void clearHistory(History *history) {
+    for (int i = 0; i < history->size; i++) {
+        free(history->urls[i]);
+    }
+    history->size = 0;
+}
+
+void freeHistory(History *history) {
+    clearHistory(history);
+    free(history->urls);
+}
+
+int main() {
+    History history;
+    initHistory(&history);
+
+    int choice;
+    char url[MAX_URL_LENGTH];
+
+    while (1) {
+        printf("\nBrowser History Manager\n");
+        printf("1. Add URL\n");
+        printf("2. Show History\n");
+        printf("3. Clear History\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        getchar();  // consume newline after scanf
+
+        switch (choice) {
+            case 1:
+                printf("Enter URL: ");
+                fgets(url, MAX_URL_LENGTH, stdin);
+                url[strcspn(url, "\n")] = 0; // remove trailing newline
+                addURL(&history, url);
+                printf("URL added.\n");
+                break;
+            case 2:
+                printHistory(&history);
+                break;
+            case 3:
+                clearHistory(&history);
+                printf("History cleared.\n");
+                break;
+            case 4:
+                freeHistory(&history);
+                printf("Exiting...\n");
+                return 0;
+            default:
+                printf("Invalid choice.\n");
+        }
+    }
+    return 0;
+}
